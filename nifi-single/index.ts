@@ -56,3 +56,13 @@ const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
         }
     }
 });
+
+// allocate an IP to the nifi Deployment.
+// const nifiSvc = new k8s.core.v1.Service(appName, {
+//     metadata: { name: appName },
+//     spec: {
+//         //type: "LoadBalancer",
+//         ports: [{ port: 8080, protocol: "TCP", targetPort: "http" }],
+//         selector: appLabels
+//     }
+// });
