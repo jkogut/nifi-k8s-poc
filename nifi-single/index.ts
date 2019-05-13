@@ -34,3 +34,25 @@ const kafka = new k8s.helm.v2.Chart("kafka", {
         }
     }
 });
+
+// nifi container, replicated 1 time.
+const appName = "nifi";
+const appLabels = { app: appName, tier: "backend", track: "stable"};
+
+const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
+    spec: {
+        selector: { matchLabels: appLabels },
+        replicas: 1,
+        template: {
+            metadata: { labels: appLabels },
+            spec: { containers: [
+                        { 
+                            name: appName, 
+                            image: "apache/nifi:latest",
+                            //resources: { requests: { cpu: "50m", memory: "100Mi" } },
+                            ports: [{ containerPort: 8080 }]
+                        }]
+                    }
+        }
+    }
+});
