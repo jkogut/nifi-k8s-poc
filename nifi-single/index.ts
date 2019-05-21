@@ -1,10 +1,26 @@
 import * as k8s from "@pulumi/kubernetes";
 
+// Create deployemnt in the nifi namespace
+const nifiNs = new k8s.core.v1.Namespace("nifi2", { metadata: { name: "nifi2" } });
+
+// workaround for namespaces that BUG:
+// https://github.com/pulumi/pulumi-kubernetes/issues/217
+function addNamespace(o: any) {
+    if (o !== undefined) {
+        if (o.metadata !== undefined) {
+            o.metadata.namespace = "nifi2";
+        } else {
+            o.metadata = {namespace: "nifi2"}
+        }
+    }
+}
+
 // Deploy the latest version of the incubator/zookeeper chart.
 const zookeeper = new k8s.helm.v2.Chart("zookeeper", {
     repo: "incubator",
     version: "1.2.0",
     chart: "zookeeper",
+    transformations: [addNamespace],
     values: {
         persistence: { size : "1Gi" }
     }
@@ -15,6 +31,7 @@ const kafka = new k8s.helm.v2.Chart("kafka", {
     repo: "incubator",
     version: "0.13.11",
     chart: "kafka",
+    transformations: [addNamespace],
     values: {
         topics: [{
             name: "test-topic",
@@ -36,26 +53,26 @@ const kafka = new k8s.helm.v2.Chart("kafka", {
 });
 
 // nifi container, replicated 1 time.
-const appName = "nifi";
-const appLabels = { app: appName, tier: "backend", track: "stable"};
+// const appName = "nifi";
+// const appLabels = { app: appName, tier: "backend", track: "stable"};
 
-const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
-    spec: {
-        selector: { matchLabels: appLabels },
-        replicas: 1,
-        template: {
-            metadata: { labels: appLabels },
-            spec: { containers: [
-                        { 
-                            name: appName, 
-                            image: "apache/nifi:latest",
-                            //resources: { requests: { cpu: "50m", memory: "100Mi" } },
-                            ports: [{ containerPort: 8080 }]
-                        }]
-                    }
-        }
-    }
-});
+// const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
+//     spec: {
+//         selector: { matchLabels: appLabels },
+//         replicas: 1,
+//         template: {
+//             metadata: { labels: appLabels },
+//             spec: { containers: [
+//                         { 
+//                             name: appName, 
+//                             image: "apache/nifi:latest",
+//                             //resources: { requests: { cpu: "50m", memory: "100Mi" } },
+//                             ports: [{ containerPort: 8080 }]
+//                         }]
+//                     }
+//         }
+//     }
+// });
 
 // allocate an IP to the nifi Deployment.
 // const nifiSvc = new k8s.core.v1.Service(appName, {
