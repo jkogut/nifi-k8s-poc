@@ -3,7 +3,7 @@ import * as k8s from "@pulumi/kubernetes";
 // Create deployemnt in the nifi namespace
 const nifiNs = new k8s.core.v1.Namespace("nifi2", { metadata: { name: "nifi2" } });
 
-// workaround for namespaces that BUG:
+// !FIXME! Workaround for namespaces from Helm Charts:
 // https://github.com/pulumi/pulumi-kubernetes/issues/217
 function addNamespace(o: any) {
     if (o !== undefined) {
@@ -53,30 +53,42 @@ const kafka = new k8s.helm.v2.Chart("kafka", {
 });
 
 // nifi container, replicated 1 time.
-// const appName = "nifi";
-// const appLabels = { app: appName, tier: "backend", track: "stable"};
+const appName = "nifi";
+const appLabels = { app: appName, tier: "backend", track: "stable"};
 
-// const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
-//     spec: {
-//         selector: { matchLabels: appLabels },
-//         replicas: 1,
-//         template: {
-//             metadata: { labels: appLabels },
-//             spec: { containers: [
-//                         { 
-//                             name: appName, 
-//                             image: "apache/nifi:latest",
-//                             //resources: { requests: { cpu: "50m", memory: "100Mi" } },
-//                             ports: [{ containerPort: 8080 }]
-//                         }]
-//                     }
-//         }
-//     }
-// });
+const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
+    metadata: {
+        name: appName,
+        labels: appLabels,
+        namespace: nifiNs.metadata.name
+    },
 
-// allocate an IP to the nifi Deployment.
+    spec: {
+        selector: { matchLabels: appLabels },
+        replicas: 1,
+        template: {
+            metadata: { labels: appLabels },
+            spec: { containers: [
+                        { 
+                            name: appName, 
+                            image: "apache/nifi:latest",
+                            //resources: { requests: { cpu: "50m", memory: "100Mi" } },
+                            ports: [{ containerPort: 8080 }]
+                        }]
+                    }
+        }
+    }
+});
+
+// allocate an IP to the nifi Deployment
+// !FIXME! hangs on "Finding Pods to direct traffic to ..." 
 // const nifiSvc = new k8s.core.v1.Service(appName, {
-//     metadata: { name: appName },
+//     metadata: {
+//         name: appName,
+//         labels: appLabels,
+//         namespace: nifiNs.metadata.name
+//     },
+
 //     spec: {
 //         //type: "LoadBalancer",
 //         ports: [{ port: 8080, protocol: "TCP", targetPort: "http" }],
