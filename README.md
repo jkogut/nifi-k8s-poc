@@ -1,6 +1,12 @@
 # nifi-k8s-poc
 PoC for nifi on k8s with pulumi
 
+#Prereq:
+```js
+$ gcloud container clusters create nifi-poc --num-nodes=3
+$ pulumi up
+```
+
 #Installs:
 
 * 3 node Zookeeper cluster 
@@ -13,4 +19,9 @@ PoC for nifi on k8s with pulumi
 * testing zk deployment:
 ```js
 for i in 0 1 2; do kubectl exec zookeeper-$i -- hostname -f; done
+```
+
+#Cleanup
+```js
+gcloud container clusters delete nifi-poc
 ```
