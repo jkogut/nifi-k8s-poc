@@ -54,7 +54,7 @@ const kafka = new k8s.helm.v2.Chart("kafka", {
 
 // nifi container, replicated 1 time.
 const appName = "nifi";
-const appLabels = { app: appName, tier: "backend", track: "stable"};
+const appLabels = { app: appName, tier: "backend" };
 
 const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
     metadata: {
@@ -73,7 +73,7 @@ const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
                             name: appName, 
                             image: "apache/nifi:latest",
                             //resources: { requests: { cpu: "50m", memory: "100Mi" } },
-                            ports: [{ containerPort: 8080 }]
+                            ports: [{ name:"http", containerPort: 8080 }]
                         }]
                     }
         }
@@ -81,17 +81,16 @@ const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
 });
 
 // allocate an IP to the nifi Deployment
-// !FIXME! hangs on "Finding Pods to direct traffic to ..." 
-// const nifiSvc = new k8s.core.v1.Service(appName, {
-//     metadata: {
-//         name: appName,
-//         labels: appLabels,
-//         namespace: nifiNs.metadata.name
-//     },
+const nifiSvc = new k8s.core.v1.Service(appName, {
+    metadata: {
+        name: appName,
+        // labels: appLabels,
+        namespace: nifiNs.metadata.name
+    },
 
-//     spec: {
-//         //type: "LoadBalancer",
-//         ports: [{ port: 8080, protocol: "TCP", targetPort: "http" }],
-//         selector: appLabels
-//     }
-// });
+    spec: {
+        //type: "LoadBalancer",
+        selector: appLabels,
+        ports: [{ port: 8080, targetPort: "http" }]
+    }
+});
