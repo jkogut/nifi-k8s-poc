@@ -151,3 +151,17 @@ const grafanaDep = new k8s.apps.v1beta1.Deployment(appGrafName, {
     }
 });
 
+// allocate an IP to the grafana Deployment
+const grafanaSvc = new k8s.core.v1.Service(appGrafName, {
+    metadata: {
+        name: appGrafName,
+        namespace: nifiNs.metadata.name
+    },
+
+    spec: {
+        //type: "LoadBalancer",
+        selector: appGrafLabels,
+        ports: [{ port: 8080, targetPort: "http" }]
+    }
+});
+
