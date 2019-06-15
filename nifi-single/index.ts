@@ -52,6 +52,34 @@ const kafka = new k8s.helm.v2.Chart("kafka", {
     }
 });
 
+// kafka burrow
+const appBurName = "burrow";
+const appBurLabels = { app: appBurName, tier: "backend", track: "stable"};
+
+const burrowDep = new k8s.apps.v1beta1.Deployment(appBurName, {
+    metadata: {
+        name: appBurName,
+        labels: appBurLabels,
+        namespace: nifiNs.metadata.name
+    },
+
+    spec: {
+        selector: { matchLabels: appBurLabels },
+        replicas: 1,
+        template: {
+            metadata: { labels: appBurLabels },
+            spec: { containers: [
+                        { 
+                            name: appBurName, 
+                            image: "solsson/burrow",
+                            //resources: { requests: { cpu: "50m", memory: "100Mi" } },
+                            ports: [{ containerPort: 8080 }]
+                        }]
+                    }
+        }
+    }
+});
+
 // nifi container, replicated 1 time.
 const appName = "nifi";
 const appLabels = { app: appName, tier: "backend" };
