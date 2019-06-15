@@ -112,7 +112,6 @@ const nifiDep = new k8s.apps.v1beta1.Deployment(appName, {
 const nifiSvc = new k8s.core.v1.Service(appName, {
     metadata: {
         name: appName,
-        // labels: appLabels,
         namespace: nifiNs.metadata.name
     },
 
@@ -122,3 +121,33 @@ const nifiSvc = new k8s.core.v1.Service(appName, {
         ports: [{ port: 8080, targetPort: "http" }]
     }
 });
+
+// grafana container, replicated 1 time.
+const appGrafName = "grafana";
+const appGrafLabels = { app: appGrafName, tier: "backend" };
+
+const grafanaDep = new k8s.apps.v1beta1.Deployment(appGrafName, {
+    metadata: {
+        name: appGrafName,
+        labels: appGrafLabels,
+        namespace: nifiNs.metadata.name
+    },
+
+    spec: {
+        selector: { matchLabels: appGrafLabels },
+        replicas: 1,
+        template: {
+            metadata: { labels: appGrafLabels },
+            spec: { containers: [
+                        { 
+                            name: appGrafName, 
+                            image: "grafana/grafana:latest",
+                            ports: [{ name:"http", containerPort: 3000 }],
+                            volumeMounts: [{name: "grafana-volume", mountPath: "/var/lib/grafana" }]
+                        }],
+                    volumes: [{ name: "grafana-volume", emptyDir: {} }]     
+                    }
+        }
+    }
+});
+
