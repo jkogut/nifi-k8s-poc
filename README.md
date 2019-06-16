@@ -12,6 +12,8 @@ $ pulumi up
 * 3 node Zookeeper cluster 
 * 3 broker Kafka
 * 1 node of NiFi
+* 1 node grafana
+* 1 node kafka burrow 
 
 
 #Testing:
