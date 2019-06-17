@@ -7,7 +7,7 @@ PoC for nifi on k8s with pulumi
 ```js
 $ sudo snap install helm --classic
 $ helm init --client-only
-$ helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/`js
+$ helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/
 ```
 
 
